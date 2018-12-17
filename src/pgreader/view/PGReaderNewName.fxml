@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="107.0" prefWidth="371.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pgreader.view.PGReaderNewNameController">
+   <children>
+      <HBox alignment="CENTER" layoutX="78.0" layoutY="26.0" spacing="10.0">
+         <children>
+            <Label layoutX="80.0" layoutY="41.0" text="Название:" />
+            <TextField fx:id="newNameTextField" layoutX="122.0" layoutY="37.0" />
+         </children>
+      </HBox>
+      <HBox alignment="CENTER" layoutX="81.0" layoutY="68.0" spacing="10.0">
+         <children>
+            <Button layoutX="97.0" layoutY="93.0" mnemonicParsing="false" onAction="#handleOkClicked" prefWidth="100.0" text="Сохранить" />
+            <Button layoutX="207.0" layoutY="93.0" mnemonicParsing="false" onAction="#handleCancel" prefWidth="100.0" text="Отмена" />
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>
