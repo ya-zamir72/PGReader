@@ -9,41 +9,132 @@
 
 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="455.0" prefWidth="561.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pgreader.view.PGReaderTabQueryController">
    <children>
-      <BorderPane prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-         <bottom>
-            <BorderPane maxHeight="-Infinity" minHeight="-Infinity" prefHeight="18.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-               <left>
-                  <Label fx:id="locationLabel" text="Label" BorderPane.alignment="CENTER">
-                     <BorderPane.margin>
-                        <Insets left="5.0" />
-                     </BorderPane.margin>
-                  </Label>
-               </left>
-               <right>
-                  <Label fx:id="statusLabel" text="" BorderPane.alignment="CENTER">
-                     <BorderPane.margin>
-                        <Insets right="5.0" />
-                     </BorderPane.margin>
-                  </Label>
-               </right>
-            </BorderPane>
-         </bottom>
+      <SplitPane dividerPositions="0.6046511627906976" prefHeight="455.0" prefWidth="561.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <items>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <BorderPane prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                     <bottom>
+                        <BorderPane maxHeight="-Infinity" minHeight="-Infinity" prefHeight="18.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                           <left>
+                              <Label fx:id="locationLabel" text="Label" BorderPane.alignment="CENTER">
+                                 <BorderPane.margin>
+                                    <Insets left="5.0" />
+                                 </BorderPane.margin>
+                              </Label>
+                           </left>
+                           <right>
+                              <Label fx:id="statusLabel" text="" BorderPane.alignment="CENTER">
+                                 <BorderPane.margin>
+                                    <Insets right="5.0" />
+                                 </BorderPane.margin>
+                              </Label>
+                           </right>
+                        </BorderPane>
+                     </bottom>
+                     <center>
+                        <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" BorderPane.alignment="CENTER">
+                           <items>
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                                 <children>
+                                    <TextArea fx:id="queryTextArea" layoutX="67.0" layoutY="-18.0" onKeyPressed="#handleRun" onKeyReleased="#handleKey" prefHeight="196.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="4.0" />
+                                 </children>
+                              </AnchorPane>
+                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                                 <children>
+                                    <BorderPane fx:id="outBorderPane" prefHeight="187.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                 </children>
+                              </AnchorPane>
+                           </items>
+                        </SplitPane>
+                     </center>
+                  </BorderPane>
+               </children>
+            </AnchorPane>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
+               <children>
+                  <BorderPane layoutX="1.0" layoutY="146.0" prefHeight="453.0" prefWidth="202.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                      <center>
+                          <AnchorPane id="AnchorPane" prefHeight="498.0" prefWidth="263.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <BorderPane layoutX="32.0" layoutY="79.0" prefHeight="400.0" prefWidth="263.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <top>
+            <AnchorPane prefHeight="97.0" prefWidth="263.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Label alignment="CENTER" layoutX="36.0" layoutY="14.0" text="Генератор запроса" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="10.0" />
+                  <Separator layoutX="32.0" layoutY="41.0" prefWidth="200.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="35.0" />
+                  <Label layoutX="34.0" layoutY="48.0" text="Список таблиц" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="40.0" />
+                                          <ComboBox fx:id="tableComboBox" layoutX="-14.0" layoutY="57.0" onAction="#handleSelectTable" prefWidth="150.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="60.0" />
+               </children>
+            </AnchorPane>
+         </top>
          <center>
-            <SplitPane dividerPositions="0.5" orientation="VERTICAL" prefHeight="400.0" prefWidth="600.0" BorderPane.alignment="CENTER">
-               <items>
-                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                     <children>
-                        <TextArea fx:id="queryTextArea" layoutX="67.0" layoutY="-18.0" onKeyPressed="#handleRun" onKeyReleased="#handleKey" prefHeight="196.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="2.0" AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="4.0" />
-                     </children>
-                  </AnchorPane>
-                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                     <children>
-                        <BorderPane fx:id="outBorderPane" prefHeight="187.0" prefWidth="598.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                     </children>
-                  </AnchorPane>
-               </items>
-            </SplitPane>
+            <TabPane prefHeight="309.0" prefWidth="263.0" tabClosingPolicy="UNAVAILABLE" BorderPane.alignment="CENTER">
+              <tabs>
+                <Tab text="Столбцы">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                           <children>
+                              <TableView fx:id="columnsTableView" editable="true" layoutX="7.0" prefHeight="274.0" prefWidth="263.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                         <columns>
+                                                            <TableColumn fx:id="columnSelect" prefWidth="40.0" text="*" />
+                                                            <TableColumn fx:id="columnName" prefWidth="177.0" text="Наименование столбцов" />
+                                                         </columns>
+                                                         <columnResizePolicy>
+                                                            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                                         </columnResizePolicy>
+                              </TableView>
+                           </children>
+                        </AnchorPane>
+                  </content>
+                </Tab>
+                <Tab text="Условия">
+                  <content>
+                    <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                                   <children>
+                                                      <ScrollPane hbarPolicy="NEVER" layoutX="10.0" layoutY="110.0" prefHeight="289.0" prefWidth="218.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                         <content>
+                                                            <AnchorPane prefHeight="286.0" prefWidth="215.0">
+                                                               <children>
+                                                                  <VBox layoutX="-22.0" layoutY="14.0" spacing="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+                                                                     <children>
+                                                                        <RadioButton layoutX="14.0" layoutY="14.0" mnemonicParsing="false" text="Без условий">
+                                                                           <padding>
+                                                                              <Insets left="5.0" />
+                                                                           </padding>
+                                                                        </RadioButton>
+                                                                        <Separator layoutX="-22.0" layoutY="41.0" prefWidth="200.0" />
+                                                                        <RadioButton layoutX="21.0" layoutY="53.0" mnemonicParsing="false" text="С условиями">
+                                                                           <padding>
+                                                                              <Insets left="5.0" />
+                                                                           </padding>
+                                                                        </RadioButton>
+                                                                     </children>
+                                                                  </VBox>
+                                                               </children>
+                                                            </AnchorPane>
+                                                         </content>
+                                                      </ScrollPane>
+                                                   </children></AnchorPane>
+                  </content>
+                </Tab>
+              </tabs>
+            </TabPane>
          </center>
+         <bottom>
+            <HBox alignment="CENTER" prefHeight="38.0" prefWidth="263.0" BorderPane.alignment="CENTER">
+               <children>
+                  <Button mnemonicParsing="false" onAction="#handleGenerate" text="Сгенерировать" />
+               </children>
+            </HBox>
+         </bottom>
       </BorderPane>
+   </children>
+</AnchorPane>
+                      </center>
+                  </BorderPane>
+               </children></AnchorPane>
+        </items>
+      </SplitPane>
    </children>
 </AnchorPane>

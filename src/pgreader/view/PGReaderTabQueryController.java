@@ -19,20 +19,30 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.cell.CheckBoxTableCell;
+import javafx.scene.control.cell.PropertyValueFactory;
 import static javafx.scene.input.KeyCode.F5;
 import static javafx.scene.input.KeyCode.F9;
 import javafx.scene.input.KeyEvent;
@@ -52,7 +62,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import pgreader.MainApp;
+import pgreader.model.Column;
 import pgreader.model.Query;
+import pgreader.model.Table;
 /**
  *
  * @author damir
@@ -67,7 +79,15 @@ public class PGReaderTabQueryController {
     Label statusLabel;
     @FXML
     BorderPane outBorderPane;
-            
+    @FXML
+    ComboBox<Table> tableComboBox;
+    @FXML
+    TableView<Column> columnsTableView;
+    @FXML
+    TableColumn<Column, StringProperty> columnName;
+    @FXML
+    TableColumn<Column, Boolean> columnSelect;
+    
     public String setName;
     private Server setServer;
     private DataBase setDatabase;
@@ -84,6 +104,38 @@ public class PGReaderTabQueryController {
         this.setQuery = query.getQueryText();
         queryTextArea.setText(query.getQueryText());
         locationLabel.setText(setServer.getServerName() + ":" + setServer.getServerPort() + "/" + setDatabase.getDataBaseName());
+        tableComboBox.setItems(setDatabase.getDataBaseTables());
+        columnName.setCellValueFactory(new PropertyValueFactory<Column, StringProperty>("columnName"));
+        columnSelect.setCellValueFactory(new PropertyValueFactory<Column, Boolean>("select"));
+        
+        columnsTableView.setEditable(true);
+        columnSelect.setCellValueFactory(new Callback<CellDataFeatures<Column, Boolean>, ObservableValue<Boolean>>() {
+
+            @Override
+            public ObservableValue<Boolean> call(CellDataFeatures<Column, Boolean> param) {
+                Column col = param.getValue(); 
+                SimpleBooleanProperty booleanProp = new SimpleBooleanProperty(col.getSelect());
+                booleanProp.addListener(new ChangeListener<Boolean>() {
+
+                    @Override
+                    public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+                            Boolean newValue) {
+                        col.setSelect(newValue);
+                    }
+                });
+                return booleanProp;
+            }
+        });
+        
+        columnSelect.setCellFactory(new Callback<TableColumn<Column, Boolean>,
+        TableCell<Column, Boolean>>() {
+            @Override
+            public TableCell<Column, Boolean> call(TableColumn<Column, Boolean> p) {
+                CheckBoxTableCell<Column, Boolean> cell = new CheckBoxTableCell<Column, Boolean>();
+                cell.setAlignment(Pos.CENTER);
+                return cell;
+            }
+        });
     }
     
     @FXML
@@ -107,6 +159,34 @@ public class PGReaderTabQueryController {
                 tab.setText(setName + "*");                 
             }
         }
+    }
+    
+    @FXML
+    private void handleSelectTable() {
+        columnsTableView.setItems(tableComboBox.getSelectionModel().getSelectedItem().getTableColumns());
+    }
+    
+    @FXML
+    private void handleGenerate() {
+        String generateQuery = "SELECT ";
+        List<String> selectedColumns = new ArrayList<String>();
+        for(Column column : tableComboBox.getSelectionModel().getSelectedItem().getTableColumns()) {
+            if(column.getSelect()) {
+                selectedColumns.add(column.getColumnName());
+            }
+        }
+        if(selectedColumns.isEmpty()) {
+            generateQuery += "*";
+        } else {
+            for(int i = 0; i < selectedColumns.size(); i++) {
+                generateQuery += "\"" + selectedColumns.get(i) + "\"";
+                if(i+1 != selectedColumns.size()) {
+                    generateQuery += ", ";
+                }
+            }
+        }
+        generateQuery += " FROM \"" + tableComboBox.getSelectionModel().getSelectedItem().getTableName() + "\"";
+        System.out.println(generateQuery);
     }
     
     /*Сохранение запроса*/
@@ -141,11 +221,11 @@ public class PGReaderTabQueryController {
                 input.setQueryServer(setServer);
                 input.setQueryDataBase(setDatabase);
                 mainApp.addQueryToFile(input);
+                parentController.handleAddQuery(input);
 
                 tab.setText(newName);    
             }             
         }
-        parentController.handleAddElement();
     }
     
     /*Вывод результата запросов*/

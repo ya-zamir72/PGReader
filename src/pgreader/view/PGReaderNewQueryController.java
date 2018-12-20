@@ -10,6 +10,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -23,6 +24,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 import pgreader.MainApp;
 import pgreader.model.DataBase;
+import pgreader.model.MultiObject;
 import pgreader.model.Query;
 import pgreader.model.Server;
 import pgreader.model.Table;
@@ -36,7 +38,7 @@ public class PGReaderNewQueryController {
     @FXML
     private BorderPane borderPane;
     @FXML 
-    private TreeView<String> treeView;
+    private TreeView<MultiObject> treeView;
     @FXML
     private TextField textFieldName;
 
@@ -49,26 +51,23 @@ public class PGReaderNewQueryController {
     private Query temp;
     private boolean okClicked = false;
     
-    /*Страшный способ заполнения TreeView*/
-    private void setTreeViewElements() {
-        TreeItem<String> rootItem = new TreeItem<String>("Список серверов", new ImageView(mainApp.rootIcon));
+    /*Заполняет TreeView списоком серверов*/
+    private void setTreeViewElements(ObservableList<MultiObject> listMultiObject) {
+        
+        MultiObject rootElement = new MultiObject("String");
+        rootElement.setObject("Список серверов");
+        
+        TreeItem<MultiObject> rootItem = new TreeItem<MultiObject>(rootElement, new ImageView(mainApp.rootIcon));
         rootItem.setExpanded(true);
-        for(Server server : servers) {
-            TreeItem<String> serverTree = new TreeItem<String>(server.getCustomServerName(), new ImageView(mainApp.serverIcon));
-            serverTree.setExpanded(server.getOpened());
-            for(DataBase database : server.getServerDataBases()) {
-                TreeItem<String> databaseTree = new TreeItem<String>(database.getDataBaseName(), new ImageView(mainApp.databaseIcon));
-                databaseTree.setExpanded(database.getOpened());
-                for(Table table : database.getDataBaseTables()) {
-                    TreeItem<String> tableTree = new TreeItem<String>(table.getTableName(), new ImageView(mainApp.tableIcon));
-                    databaseTree.getChildren().add(tableTree);
-                }   
-                serverTree.getChildren().add(databaseTree);
-            }            
-            rootItem.getChildren().add(serverTree);
+        
+        ObservableList<TreeItem<MultiObject>> listTree = FXCollections.observableArrayList();
+        
+        for(MultiObject moServer : listMultiObject) {
+            TreeItem<MultiObject> treeItemServer = new TreeItem<MultiObject>(moServer, new ImageView(mainApp.serverIcon));
+            listTree.add(treeItemServer);
         }
-        treeView = new TreeView<String>(rootItem);
-        treeView.setShowRoot(false);
+        rootItem.getChildren().addAll(listTree);
+        treeView = new TreeView<MultiObject>(rootItem);
         treeView.setOnMouseClicked( new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent mouseEvent) {
@@ -81,49 +80,36 @@ public class PGReaderNewQueryController {
         });
         borderPane.setCenter(treeView);
     }
-    
-    /*Страшный способ обработки клика*/
-    private void clickedElement(MouseEvent mouseEvent) {
+    /*При клике запрашивает список бд и добавляет в TreeView*/
+    private void clickedElement(MouseEvent event) {
         try {
-            if(mouseEvent.getClickCount() == 1) {
-                for(Server searchServer : servers) {
-                    if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchServer.getCustomServerName())) {
-                        searchServer.switchOpened();
-                        treeView.getSelectionModel().getSelectedItem().setExpanded(searchServer.getOpened());
+            if(event.getClickCount() == 2) {
+                String typeSelectedElement = treeView.getSelectionModel().getSelectedItem().getValue().getType();
+                if(!treeView.getSelectionModel().getSelectedItem().isExpanded()) {
+                    if(typeSelectedElement.equals("Server")) {
+                        Server selectedServer = (Server) treeView.getSelectionModel().getSelectedItem().getValue().getObject();
+                        selectedServer.setServerDataBases(requestListDatabases(selectedServer));
+                        ObservableList<TreeItem<MultiObject>> listTreeItemDataBases = FXCollections.observableArrayList();
+                        for(DataBase db : selectedServer.getServerDataBases()) {
+                            System.out.println(db.getDataBaseName());
+                            MultiObject moDataBase = new MultiObject("DataBase");
+                            moDataBase.setObject(db);
+                            TreeItem<MultiObject> treeItemDataBase = new TreeItem<MultiObject>(moDataBase, new ImageView(mainApp.databaseIcon));
+                            listTreeItemDataBases.add(treeItemDataBase);
+                        }
+                        
+                        treeView.getSelectionModel().getSelectedItem().getChildren().clear();
+                        treeView.getSelectionModel().getSelectedItem().getChildren().addAll(listTreeItemDataBases);
+                        treeView.getSelectionModel().getSelectedItem().setExpanded(true);
+                        
                     } else {
-                        if(treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals(searchServer.getCustomServerName())) {
-                            for(DataBase searchDataBase : searchServer.getServerDataBases()) {
-                                if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchDataBase.getDataBaseName())) {
-                                    searchDataBase.switchOpened();
-                                    treeView.getSelectionModel().getSelectedItem().setExpanded(searchDataBase.getOpened());
-                                }
-                            }
-                        }
+                        treeView.getSelectionModel().getSelectedItem().setExpanded(false);
+                    }
+                    if(typeSelectedElement.equals("DataBase")) {
+                        selectedServer = (Server) treeView.getSelectionModel().getSelectedItem().getParent().getValue().getObject();
+                        selectedDataBase = (DataBase) treeView.getSelectionModel().getSelectedItem().getValue().getObject();
                     }
                 }
-                treeView.getSelectionModel().select(-1);
-            }
-            if(mouseEvent.getClickCount() == 2) {
-                for(Server searchServer : servers) {
-                    if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchServer.getCustomServerName())) {
-                        searchServer.setServerDataBases(requestListDatabases(searchServer));
-                        searchServer.setOpened(true);
-                        break;
-                    }
-                    if(treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals(searchServer.getCustomServerName())) {
-                        selectedServer = searchServer;
-                        for(DataBase searchDataBase : searchServer.getServerDataBases()) {
-                            if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchDataBase.getDataBaseName())) {
-                                selectedDataBase = searchDataBase;
-                                searchDataBase.setDataBaseTables(requestListTables(searchServer));
-                                searchDataBase.setOpened(true);
-                            }
-                        }
-                        break;
-                    }
-                }
-                treeView.getSelectionModel().select(-1);
-                setTreeViewElements();
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -251,7 +237,17 @@ public class PGReaderNewQueryController {
             elem.setServerDataBases(FXCollections.observableArrayList());
         }
         queries = mainApp.getListQuery();
-        setTreeViewElements();
+        
+        ObservableList<MultiObject> listMultiObject = FXCollections.observableArrayList();
+        
+        for(Server element : servers) {
+            MultiObject mObject = new MultiObject("Server");
+            mObject.setObject((Object) element);
+            listMultiObject.add(mObject);
+        }
+        
+        treeView.setEditable(true);
+        setTreeViewElements(listMultiObject);
     }
     
     public void setDialogStage(Stage dialogStage) {

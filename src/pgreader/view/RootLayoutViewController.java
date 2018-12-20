@@ -18,16 +18,11 @@ import pgreader.model.Server;
 public class RootLayoutViewController {
    
     MainApp mainApp;
+    PGReaderOverviewController controller;
     
     @FXML
     private void handleNewServer() {
-        Server temp = new Server();
-        boolean okClicked = mainApp.showPGReaderNewServerView(temp);
-        if(okClicked) {
-            mainApp.getListServer().add(temp);
-            mainApp.saveServerDataToFile();
-            mainApp.overviewController.handleAddElement();
-        }
+        controller.handleNewServer();
     }
     
     @FXML
@@ -61,17 +56,14 @@ public class RootLayoutViewController {
     
     @FXML
     private void handleNewQuery() {
-        Query temp = new Query();
-        boolean okClicked = mainApp.showPGReaderNewQuery(temp);
-        if(okClicked) {
-            mainApp.getListQuery().add(temp);
-            mainApp.saveQueryDataToFile();
-            mainApp.overviewController.handleNewTabQuery(temp);
-            mainApp.overviewController.handleAddElement();
-        }
+        controller.handleNewQuery();
     }
     
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
     }
+    
+    public void setPGReaderOverviewController(PGReaderOverviewController controller) {
+        this.controller = controller;
+}
 }

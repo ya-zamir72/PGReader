@@ -68,6 +68,7 @@ public class MainApp extends Application {
 
     
     public PGReaderOverviewController overviewController;
+    private RootLayoutViewController layoutController;
     public String selectedTab;
     public ObservableList<PGReaderTabQueryController> tabsController = FXCollections.observableArrayList();
             
@@ -97,8 +98,8 @@ public class MainApp extends Application {
         try { 
             FXMLLoader loader = new FXMLLoader(MainApp.class.getResource("view/RootLayoutView.fxml"));
             rootLayout = loader.load();
-            RootLayoutViewController controller = loader.getController();
-            controller.setMainApp(this);
+            layoutController = loader.getController();
+            layoutController.setMainApp(this);
             Scene scene = new Scene(rootLayout);
             primaryStage.setScene(scene);
             primaryStage.show();
@@ -114,6 +115,7 @@ public class MainApp extends Application {
             AnchorPane pgreaderOverview = (AnchorPane) loader.load();
             overviewController = loader.getController();
             overviewController.setMainApp(this);
+            layoutController.setPGReaderOverviewController(overviewController);
             rootLayout.setCenter(pgreaderOverview);
         } catch (IOException e) {
             e.printStackTrace();
@@ -480,13 +482,13 @@ public class MainApp extends Application {
         saveQueryDataToFile();
     }
     
-    public void removeServer(int i) {
-        listServer.remove(i);
+    public void removeServer(Server server) {
+        listServer.remove(server);
         saveServerDataToFile();
     }
     
-    public void removeQuery(int i) {
-        listQuery.remove(i);
+    public void removeQuery(Query query) {
+        listQuery.remove(query);
         saveQueryDataToFile();
     }
 }
