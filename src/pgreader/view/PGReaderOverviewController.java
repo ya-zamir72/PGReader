@@ -7,14 +7,12 @@ package pgreader.view;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.layout.BorderPane;
@@ -29,19 +27,17 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import javafx.event.EventType;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ContextMenuBuilder;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.MenuItemBuilder;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
+import pgreader.model.MultiObject;
 import pgreader.model.Query;
 import pgreader.model.Table;
 
@@ -52,7 +48,7 @@ import pgreader.model.Table;
 public class PGReaderOverviewController implements Initializable {
    
     @FXML
-    private TreeView<String> treeView;
+    private TreeView<MultiObject> treeView;
     @FXML
     private BorderPane leftBorderPane;
     @FXML
@@ -68,53 +64,53 @@ public class PGReaderOverviewController implements Initializable {
     private int countTabs = 0;
     private boolean openedQuery = false;
     
-    /*Страшный способ обновления*/
+    /*Заполнение TreeView серверами и прочими объектами*/
     @FXML
-    public void handleAddElement()  {
-
-        TreeItem<String> rootElement = new TreeItem<String>("Обозреватель серверов");
+    public void handleAddElement(ObservableList<Server> listServer, ObservableList<Query> listQuery)  {
+        
+        MultiObject rootItem = new MultiObject("String");
+        rootItem.setObject("Обозреватель");
+        TreeItem<MultiObject> rootElement = new TreeItem<MultiObject>(rootItem);
         rootElement.setExpanded(true);
         
-        TreeItem<String> serversItem = new TreeItem<String>("Список серверов", new ImageView(mainApp.rootIcon));        
-
-        for(Server elemServer : elementList) {
-            TreeItem<String> serverTree = new TreeItem<String>(elemServer.getCustomServerName(), new ImageView(mainApp.serverIcon));
-            serverTree.setExpanded(elemServer.getOpened());
-            for(DataBase elemDataBase : elemServer.getServerDataBases()) {
-                TreeItem<String> databaseTree = new TreeItem<String>(elemDataBase.getDataBaseName(), new ImageView(mainApp.databaseIcon));
-                databaseTree.setExpanded(elemDataBase.getOpened());
-                for(Table elemTable : elemDataBase.getDataBaseTables()) {
-                    TreeItem<String> tableTree = new TreeItem<String>(elemTable.getTableName(), new ImageView(mainApp.tableIcon));
-                    tableTree.setExpanded(elemTable.getOpened());
-                    for(Column elemColumn : elemTable.getTableColumns()) {
-                        TreeItem<String> columnTree = new TreeItem<String>(elemColumn.getCustomColumnName(), new ImageView(mainApp.columnIcon));
-                        tableTree.getChildren().add(columnTree);
-                    }
-                    databaseTree.getChildren().add(tableTree);
-                }   
-                serverTree.getChildren().add(databaseTree);
-            }            
-            serversItem.getChildren().add(serverTree);
+        MultiObject serverItems = new MultiObject("String");
+        serverItems.setObject("Список серверов");
+        TreeItem<MultiObject> serverElements = new TreeItem<MultiObject>(serverItems, new ImageView(mainApp.rootIcon));
+        serverElements.setExpanded(true);
+        
+        for(Server server : listServer) {
+            MultiObject serverItem = new MultiObject("Server");
+            serverItem.setObject(server);
+            TreeItem<MultiObject> serverElement = new TreeItem<MultiObject>(serverItem, new ImageView(mainApp.serverIcon));
+            serverElements.getChildren().add(serverElement);
         }
         
-        TreeItem<String> addItem = new TreeItem<String>("Добавить сервер", new ImageView(mainApp.addIcon));        
-        serversItem.getChildren().add(addItem);
-        serversItem.setExpanded(true);
+        MultiObject addServerItem = new MultiObject("String");
+        addServerItem.setObject("Добавить сервер");
+        TreeItem<MultiObject> addServerElement = new TreeItem(addServerItem, new ImageView(mainApp.addIcon));
+        serverElements.getChildren().add(addServerElement);
         
-        TreeItem<String> queriesTree = new TreeItem<String>("Сохраненные запросы");
-        for(Query elem : elementQuery){
-            TreeItem<String> query = new TreeItem<String>(elem.getQueryName(), new ImageView(mainApp.scriptIcon));
-            queriesTree.getChildren().add(query);
+        MultiObject queryItems = new MultiObject("String");
+        queryItems.setObject("Сохраненные запросы");
+        TreeItem<MultiObject> queryElements = new TreeItem<MultiObject>(queryItems);
+        queryElements.setExpanded(true);
+        
+        for(Query query : listQuery) {
+            MultiObject queryItem = new MultiObject("Query");
+            queryItem.setObject(query);
+            TreeItem<MultiObject> queryElement = new TreeItem<MultiObject>(queryItem, new ImageView(mainApp.scriptIcon));
+            queryElements.getChildren().add(queryElement);
         }
         
-        TreeItem<String> addQueries = new TreeItem<String>("Добавить запрос", new ImageView(mainApp.addIcon));
+        MultiObject addQueryItem = new MultiObject("String");
+        addQueryItem.setObject("Добавить запрос");
+        TreeItem<MultiObject> addQueryElement = new TreeItem(addQueryItem, new ImageView(mainApp.addIcon));
+        queryElements.getChildren().add(addQueryElement);
         
-        queriesTree.getChildren().add(addQueries);
+        rootElement.getChildren().addAll(serverElements, queryElements);
         
-        rootElement.getChildren().add(serversItem);
-        rootElement.getChildren().add(queriesTree);
-        
-        treeView = new TreeView<String>(rootElement);
+        treeView = new TreeView<MultiObject>(rootElement);
+        treeView.setEditable(true);
         treeView.setShowRoot(false);
         treeView.setOnMouseClicked( new EventHandler<MouseEvent>() {
             @Override
@@ -129,15 +125,107 @@ public class PGReaderOverviewController implements Initializable {
         leftBorderPane.setCenter(treeView);
     }
     
+    /*События при клике по элементам TreeView*/
+    private void clickedElement(MouseEvent mouseEvent) {
+        try {
+            if(mouseEvent.getClickCount() == 1) {
+                contextMenu.hide();
+            }
+            if(mouseEvent.getButton() == MouseButton.PRIMARY) {
+                if(mouseEvent.getClickCount() == 2) {
+                    String typeSelectedElement = treeView.getSelectionModel().getSelectedItem().getValue().getType();
+
+                    if(!treeView.getSelectionModel().getSelectedItem().isExpanded()) {
+                        if(typeSelectedElement.equals("Server")) {
+                            Server selectedServer = (Server) treeView.getSelectionModel().getSelectedItem().getValue().getObject();
+                            selectedServer.setServerDataBases(requestListDatabases(selectedServer));
+                            ObservableList<TreeItem<MultiObject>> listTreeItemDataBases = FXCollections.observableArrayList();
+                            for(DataBase db : selectedServer.getServerDataBases()) {
+                                MultiObject moDataBase = new MultiObject("DataBase");
+                                moDataBase.setObject(db);
+                                TreeItem<MultiObject> treeItemDataBase = new TreeItem<MultiObject>(moDataBase, new ImageView(mainApp.databaseIcon));
+                                listTreeItemDataBases.add(treeItemDataBase);
+                            }
+
+                            treeView.getSelectionModel().getSelectedItem().getChildren().clear();
+                            treeView.getSelectionModel().getSelectedItem().getChildren().addAll(listTreeItemDataBases);
+                            treeView.getSelectionModel().getSelectedItem().setExpanded(true);   
+                        }
+
+                        if(typeSelectedElement.equals("DataBase")) {
+                            Server selectedServer = (Server) treeView.getSelectionModel().getSelectedItem().getParent().getValue().getObject();
+                            DataBase selectedDataBase = (DataBase) treeView.getSelectionModel().getSelectedItem().getValue().getObject();
+                            selectedDataBase.setDataBaseTables(requestListTables(selectedServer));
+                            ObservableList<TreeItem<MultiObject>> listTreeItemTables = FXCollections.observableArrayList();
+                            for(Table tb : selectedDataBase.getDataBaseTables()) {
+                                MultiObject moTable = new MultiObject("Table");
+                                moTable.setObject(tb);
+                                TreeItem<MultiObject> treeItemTable = new TreeItem<MultiObject>(moTable, new ImageView(mainApp.tableIcon));
+                                for(Column col : tb.getTableColumns()) {
+                                    MultiObject moColumn = new MultiObject("Column");
+                                    moColumn.setObject(col);
+                                    TreeItem<MultiObject> treeItemColumn = new TreeItem<MultiObject>(moColumn, new ImageView(mainApp.columnIcon));
+                                    treeItemTable.getChildren().add(treeItemColumn);
+                                }
+                                listTreeItemTables.add(treeItemTable);
+                            }
+
+                            treeView.getSelectionModel().getSelectedItem().getChildren().clear();
+                            treeView.getSelectionModel().getSelectedItem().getChildren().addAll(listTreeItemTables);
+                            treeView.getSelectionModel().getSelectedItem().setExpanded(true);
+                            
+                            countTabs++;
+                            Query temp = new Query();
+                            temp.setQueryServer(selectedServer);
+                            temp.setQueryDataBase(selectedDataBase);
+                            temp.setQueryName("Query " + countTabs);
+                            temp.setQueryText("");
+                            handleNewTabQuery(temp);
+                        }
+                    } else {
+                        treeView.getSelectionModel().getSelectedItem().setExpanded(openedQuery);
+                    }
+                    if(typeSelectedElement.equals("Query")) {
+                        Query selectedQuery = (Query) treeView.getSelectionModel().getSelectedItem().getValue().getObject();
+                        handleNewTabQuery(selectedQuery);
+                    }
+                    if(typeSelectedElement.equals("String")) {
+                        if(treeView.getSelectionModel().getSelectedItem().getValue().getObject().toString().equals("Добавить сервер")) {
+                            handleNewServer();
+                        }
+                        if(treeView.getSelectionModel().getSelectedItem().getValue().getObject().toString().equals("Добавить запрос")) {
+                            handleNewQuery();
+                        }
+                    }
+                } 
+            }
+            if(mouseEvent.getButton() == MouseButton.SECONDARY) {
+                setContextMenu(mouseEvent);
+            }
+        } catch(Exception e) {
+            
+        }
+    }
+    
     @FXML
-    private void handleNewServer() {
+    public void handleNewServer() {
         Server temp = new Server();
         boolean okClicked = mainApp.showPGReaderNewServerView(temp);
         if(okClicked) {
             mainApp.getListServer().add(temp);
             mainApp.saveServerDataToFile();
-            handleAddElement();
+            MultiObject newServer = new MultiObject("Server");
+            newServer.setObject(temp);
+            TreeItem<MultiObject> treeItemNewServer = new TreeItem<MultiObject>(newServer, new ImageView(mainApp.serverIcon));
+            treeView.getRoot().getChildren().get(0).getChildren().add(treeView.getRoot().getChildren().get(0).getChildren().size() - 1, treeItemNewServer);
         }
+    }
+    
+    public void handleAddQuery(Query temp) {
+        MultiObject newQuery = new MultiObject("Query");
+        newQuery.setObject(temp);
+        TreeItem<MultiObject> treeItemNewQuery = new TreeItem<MultiObject>(newQuery, new ImageView(mainApp.scriptIcon));
+        treeView.getRoot().getChildren().get(1).getChildren().add(treeView.getRoot().getChildren().get(1).getChildren().size() - 1, treeItemNewQuery);
     }
     
     public void handleNewQuery() {
@@ -146,125 +234,28 @@ public class PGReaderOverviewController implements Initializable {
         if(okClicked) {
             mainApp.getListQuery().add(temp);
             mainApp.saveQueryDataToFile();
+            
+            MultiObject newQuery = new MultiObject("Query");
+            newQuery.setObject(temp);
+            TreeItem<MultiObject> treeItemNewQuery = new TreeItem<MultiObject>(newQuery, new ImageView(mainApp.scriptIcon));
+            treeView.getRoot().getChildren().get(1).getChildren().add(treeView.getRoot().getChildren().get(1).getChildren().size() - 1, treeItemNewQuery);
             handleNewTabQuery(temp);
-            handleAddElement();
-        }
-    }
-    
-    /*Страшный способ обновления обработки клика*/
-    private void clickedElement(MouseEvent mouseEvent) {
-        try {
-            if(mouseEvent.getButton() == MouseButton.PRIMARY) {
-                contextMenu.hide();
-                if(mouseEvent.getClickCount() == 1) {
-                    if(treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals("Список серверов")) {
-                        for(Server searchServer : elementList) {
-                            if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchServer.getCustomServerName())) {
-                                searchServer.switchOpened();
-                                treeView.getSelectionModel().getSelectedItem().setExpanded(searchServer.getOpened());
-                                break;
-                            }
-                        }
-                    }
-                    if(treeView.getSelectionModel().getSelectedItem().getParent().getParent().getValue().equals("Список серверов")) {
-                        for(Server searchServer : elementList) {
-                            if(treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals(searchServer.getCustomServerName())) {
-                                for(DataBase searchDataBase : searchServer.getServerDataBases()) {
-                                    if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchDataBase.getDataBaseName())) {
-                                        searchDataBase.switchOpened();
-                                        treeView.getSelectionModel().getSelectedItem().setExpanded(searchDataBase.getOpened());
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    if(treeView.getSelectionModel().getSelectedItem().getParent().getParent().getParent().getValue().equals("Список серверов")) {
-                        for(Server searchServer : elementList) {
-                            if(treeView.getSelectionModel().getSelectedItem().getParent().getParent().getValue().equals(searchServer.getCustomServerName())) {
-                                for(DataBase searchDataBase : searchServer.getServerDataBases()) {
-                                    if(treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals(searchDataBase.getDataBaseName())) {
-                                        for(Table searchTable : searchDataBase.getDataBaseTables()) {
-                                            if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchTable)) {
-                                                searchTable.switchOpened();
-                                                treeView.getSelectionModel().getSelectedItem().setExpanded(searchTable.getOpened());    
-                                                break;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                }
-                if(mouseEvent.getClickCount() == 2) {
-                    if(treeView.getSelectionModel().getSelectedItem().getValue() == "Добавить сервер") {
-                        handleNewServer();
-                    }
-                    if(treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals("Сохраненные запросы")) {
-                        if(treeView.getSelectionModel().getSelectedItem().getValue().equals("Добавить запрос")) {
-                            handleNewQuery();
-                            return;
-                        }
-                        for(Query queryElem : elementQuery) {
-                            if(treeView.getSelectionModel().getSelectedItem().getValue().equals(queryElem.getQueryName())) {
-                                System.out.println(queryElem.getQueryName());
-                                handleNewTabQuery(queryElem);
-                                break;
-                            }
-                        }
-                    }
-                    for(Server searchServer : elementList) {
-                        if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchServer.getCustomServerName())) {
-                            searchServer.setServerDataBases(requestListDatabases(searchServer));
-                            searchServer.setOpened(true);
-                            break;
-                        }
-                        if(treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals(searchServer.getCustomServerName())) {
-                            for(DataBase searchDataBase : searchServer.getServerDataBases()) {
-                                if(treeView.getSelectionModel().getSelectedItem().getValue().equals(searchDataBase.getDataBaseName())) {
-                                    searchDataBase.setDataBaseTables(requestListTables(searchServer));
-                                    searchDataBase.setOpened(true);
-                                    countTabs++;
-                                    Query temp = new Query();
-                                    temp.setQueryServer(searchServer);
-                                    temp.setQueryDataBase(searchDataBase);
-                                    temp.setQueryName("Query " + countTabs);
-                                    temp.setQueryText("");
-                                    handleNewTabQuery(temp);
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    handleAddElement();
-                    treeView.getSelectionModel().select(-1);
-                }
-            }
-            if(mouseEvent.getButton() == MouseButton.SECONDARY) {
-                setContextMenu(mouseEvent);
-            }
-        } catch(Exception e) {
-            e.printStackTrace();
-            treeView.getSelectionModel().select(-1);
+            
         }
     }
     
     private void setContextMenu(MouseEvent mouseEvent) {
-        if((treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals("Список серверов"))&&
-                (!treeView.getSelectionModel().getSelectedItem().getValue().equals("Добавить сервер"))) {
-            contextMenu.getItems().clear();
+        String typeSelectedElement = treeView.getSelectionModel().getSelectedItem().getValue().getType();
+        contextMenu.getItems().clear();
+
+        if(typeSelectedElement.equals("Server")) {
             MenuItem delItem = new MenuItem("Удалить сервер");
             delItem.setOnAction(new EventHandler<ActionEvent>() {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
-                        removeServer(treeView.getSelectionModel().getSelectedItem().getValue());
-                        treeView.getSelectionModel().select(-1);
+                        mainApp.removeServer((Server)treeView.getSelectionModel().getSelectedItem().getValue().getObject());
+                        treeView.getRoot().getChildren().get(0).getChildren().remove(treeView.getSelectionModel().getSelectedItem());
                     } catch(Exception e) {
                         e.printStackTrace();
                     }
@@ -273,17 +264,16 @@ public class PGReaderOverviewController implements Initializable {
             
             contextMenu.getItems().add(delItem);
             contextMenu.show(treeView, mouseEvent.getScreenX(), mouseEvent.getScreenY());
-        } else {
-            if((treeView.getSelectionModel().getSelectedItem().getParent().getValue().equals("Сохраненные запросы"))&&
-                    (!treeView.getSelectionModel().getSelectedItem().getValue().equals("Добавить запрос"))) {
-                contextMenu.getItems().clear();
+        } else
+            if(typeSelectedElement.equals("Query")) {
+                
                 MenuItem delItem = new MenuItem("Удалить запрос");
                 delItem.setOnAction(new EventHandler<ActionEvent>() {
                     @Override
                     public void handle(ActionEvent event) {
                         try {
-                            removeQuery(treeView.getSelectionModel().getSelectedItem().getValue());
-                            treeView.getSelectionModel().select(-1);
+                            mainApp.removeQuery((Query)treeView.getSelectionModel().getSelectedItem().getValue().getObject());
+                            treeView.getRoot().getChildren().get(1).getChildren().remove(treeView.getSelectionModel().getSelectedItem());
                         } catch(Exception e) {
                             e.printStackTrace();
                         }
@@ -292,33 +282,6 @@ public class PGReaderOverviewController implements Initializable {
                 contextMenu.getItems().add(delItem);
                 contextMenu.show(treeView, mouseEvent.getScreenX(), mouseEvent.getScreenY());
             }
-        }
-    }
-    
-    private void removeServer(String nameServer) {
-        int i = 0;
-        for(Server server : elementList) {
-            if(server.getCustomServerName().equals(nameServer)){
-                mainApp.removeServer(i);
-                elementList = mainApp.getListServer();
-                handleAddElement();
-                break;
-            }
-            i++;
-        }
-    }
-    
-    private void removeQuery(String nameQuery) {
-        int i = 0;
-        for(Query query : elementQuery) {
-            if(query.getQueryName().equals(nameQuery)){
-                mainApp.removeQuery(i);
-                elementQuery = mainApp.getListQuery();
-                handleAddElement();
-                break;
-            }
-            i++;
-        }
     }
 
     /*Открытие новой вкладки*/
@@ -373,7 +336,12 @@ public class PGReaderOverviewController implements Initializable {
 
             return dataBases;
         } catch(Exception e) {
-            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Ошибка");
+            alert.setHeaderText("Сервер не доступен");
+            alert.setContentText("Проверьте соединение");
+
+            alert.showAndWait();
             return FXCollections.observableArrayList();
         }
     }
@@ -425,7 +393,12 @@ public class PGReaderOverviewController implements Initializable {
             
             return tables;
         } catch(Exception e) {
-            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Ошибка");
+            alert.setHeaderText("Сервер не доступен");
+            alert.setContentText("Проверьте соединение");
+
+            alert.showAndWait();
             return FXCollections.observableArrayList();
         }
     }
@@ -433,8 +406,8 @@ public class PGReaderOverviewController implements Initializable {
     public void setMainApp(MainApp mainApp) {
         this.mainApp = mainApp;
         elementList = mainApp.getListServer();
-        elementQuery = mainApp.getListQuery();
-        handleAddElement();
+        elementQuery = mainApp.getListQuery();     
+        handleAddElement(mainApp.getListServer(), mainApp.getListQuery());
     }
     
     @Override

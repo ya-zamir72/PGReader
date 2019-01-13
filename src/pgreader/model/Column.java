@@ -13,10 +13,20 @@ import javafx.beans.property.StringProperty;
  * @author damir
  */
 public class Column {
+    Boolean select = false;
     private StringProperty columnName = new SimpleStringProperty();
     private StringProperty columnType = new SimpleStringProperty();
     private StringProperty columnParent = new SimpleStringProperty();
+    
     private boolean opened = false;
+    
+    public void setSelect(Boolean isSelect) {
+        this.select = isSelect;
+    }
+    
+    public Boolean getSelect() {
+        return select;
+    }
     
     public String getColumnName() {
         return columnName.get();
@@ -68,5 +78,10 @@ public class Column {
     
     public void setOpened(boolean opened) {
         this.opened = opened;
+    }
+    
+    @Override
+    public String toString() {
+        return columnName.get();
     }
 }

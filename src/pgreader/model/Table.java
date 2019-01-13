@@ -59,4 +59,9 @@ public class Table {
     public void setOpened(boolean opened) {
         this.opened = opened;
     }
+    
+    @Override
+    public String toString() {
+        return tableName.get();
+    }
 }
