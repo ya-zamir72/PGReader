@@ -5,7 +5,6 @@
  */
 package pgreader.model;
 
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
@@ -79,5 +78,10 @@ public class Column {
     
     public void setOpened(boolean opened) {
         this.opened = opened;
+    }
+    
+    @Override
+    public String toString() {
+        return columnName.get();
     }
 }

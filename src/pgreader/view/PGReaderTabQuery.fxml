@@ -7,9 +7,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="455.0" prefWidth="561.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pgreader.view.PGReaderTabQueryController">
+<?import pgreader.widgets.MaskField?>
+
+<AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="579.0" prefWidth="561.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pgreader.view.PGReaderTabQueryController">
    <children>
-      <SplitPane dividerPositions="0.6046511627906976" prefHeight="455.0" prefWidth="561.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <SplitPane dividerPositions="0.5313059033989267" prefHeight="455.0" prefWidth="561.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
           <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="160.0" prefWidth="100.0">
                <children>
@@ -77,8 +79,8 @@
                            <children>
                               <TableView fx:id="columnsTableView" editable="true" layoutX="7.0" prefHeight="274.0" prefWidth="263.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                                                          <columns>
-                                                            <TableColumn fx:id="columnSelect" prefWidth="40.0" text="*" />
-                                                            <TableColumn fx:id="columnName" prefWidth="177.0" text="Наименование столбцов" />
+                                                            <TableColumn fx:id="columnSelect" maxWidth="40.0" minWidth="40.0" prefWidth="40.0" text="*" />
+                                                            <TableColumn fx:id="columnName" maxWidth="1.7976931348623157E308" prefWidth="-1.0" text="Наименование столбцов" />
                                                          </columns>
                                                          <columnResizePolicy>
                                                             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
@@ -88,36 +90,146 @@
                         </AnchorPane>
                   </content>
                 </Tab>
-                <Tab text="Условия">
+                <Tab text="Фильтр">
                   <content>
                     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                                                    <children>
-                                                      <ScrollPane hbarPolicy="NEVER" layoutX="10.0" layoutY="110.0" prefHeight="289.0" prefWidth="218.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-                                                         <content>
-                                                            <AnchorPane prefHeight="286.0" prefWidth="215.0">
-                                                               <children>
-                                                                  <VBox layoutX="-22.0" layoutY="14.0" spacing="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+                                                      <BorderPane layoutX="-12.0" layoutY="22.0" prefHeight="289.0" prefWidth="218.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                         <center>
+                                                            <TableView fx:id="addedConditionTableView" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                                                              <columns>
+                                                                <TableColumn fx:id="selectAddedConditionTableColumn" maxWidth="40.0" minWidth="40.0" prefWidth="40.0" resizable="false" text="*" />
+                                                                  <TableColumn fx:id="titleAddedCondition" prefWidth="75.0" text="Условие" />
+                                                              </columns>
+                                                               <columnResizePolicy>
+                                                                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                                               </columnResizePolicy>
+                                                            </TableView>
+                                                         </center>
+                                                         <top>
+                                                            <BorderPane fx:id="conditionBP" prefHeight="171.0" prefWidth="259.0" BorderPane.alignment="CENTER">
+                                                               <top>
+                                                                  <VBox alignment="CENTER" spacing="10.0" BorderPane.alignment="CENTER">
                                                                      <children>
-                                                                        <RadioButton layoutX="14.0" layoutY="14.0" mnemonicParsing="false" text="Без условий">
-                                                                           <padding>
-                                                                              <Insets left="5.0" />
-                                                                           </padding>
-                                                                        </RadioButton>
-                                                                        <Separator layoutX="-22.0" layoutY="41.0" prefWidth="200.0" />
-                                                                        <RadioButton layoutX="21.0" layoutY="53.0" mnemonicParsing="false" text="С условиями">
-                                                                           <padding>
-                                                                              <Insets left="5.0" />
-                                                                           </padding>
-                                                                        </RadioButton>
+                                                                        <HBox alignment="CENTER" spacing="10.0">
+                                                                           <children>
+                                                                              <RadioButton fx:id="withOutConditionRB" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" selected="true" text="Без фильтров">
+                                                                                 <VBox.margin>
+                                                                                    <Insets left="15.0" />
+                                                                                 </VBox.margin>
+                                                                              </RadioButton>
+                                                                              <RadioButton fx:id="withConditionRB" layoutX="14.0" layoutY="51.0" mnemonicParsing="false" text="С фильтрами">
+                                                                                 <VBox.margin>
+                                                                                    <Insets left="15.0" />
+                                                                                 </VBox.margin>
+                                                                              </RadioButton>
+                                                                           </children>
+                                                                        </HBox>
+                                                                        <Label text="Выберите столбец">
+                                                                           <VBox.margin>
+                                                                              <Insets bottom="-10.0" left="-70.0" />
+                                                                           </VBox.margin>
+                                                                        </Label>
+                                                                        <ComboBox fx:id="columnsComboBox" layoutX="14.0" layoutY="82.0" onAction="#handleSelectColumn" prefWidth="200.0" />
+                                                                        <Label text="Выберите условие">
+                                                                           <VBox.margin>
+                                                                              <Insets bottom="-10.0" left="-70.0" />
+                                                                           </VBox.margin>
+                                                                        </Label>
+                                                                        <ComboBox fx:id="conditionComboBox" onAction="#handleSelectCondition" prefWidth="200.0" />
                                                                      </children>
+                                                                     <BorderPane.margin>
+                                                                        <Insets />
+                                                                     </BorderPane.margin>
                                                                   </VBox>
-                                                               </children>
-                                                            </AnchorPane>
-                                                         </content>
-                                                      </ScrollPane>
+                                                               </top>
+                                                               <bottom>
+                                                                  <Button mnemonicParsing="false" onAction="#handleAddCondition" prefHeight="25.0" prefWidth="147.0" text="Добавить условие" BorderPane.alignment="CENTER">
+                                                                     <BorderPane.margin>
+                                                                        <Insets />
+                                                                     </BorderPane.margin>
+                                                                  </Button>
+                                                               </bottom>
+                                                               <BorderPane.margin>
+                                                                  <Insets bottom="5.0" top="5.0" />
+                                                               </BorderPane.margin>
+                                                            </BorderPane>
+                                                         </top>
+                                                      </BorderPane>
                                                    </children></AnchorPane>
                   </content>
                 </Tab>
+                                          <Tab text="Прочее">
+                                            <content>
+                                              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                                                   <children>
+                                                      <VBox layoutX="14.0" layoutY="53.0" prefHeight="413.0" prefWidth="259.0" spacing="10.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                                                         <children>
+                                                            <CheckBox fx:id="orderByCB" mnemonicParsing="false" text="Сортировка">
+                                                               <VBox.margin>
+                                                                  <Insets left="15.0" />
+                                                               </VBox.margin>
+                                                            </CheckBox>
+                                                            <HBox alignment="CENTER">
+                                                               <children>
+                                                                  <Label layoutX="102.0" layoutY="53.0" text="Выберите столбец для сортировки">
+                                                                     <padding>
+                                                                        <Insets bottom="-10.0" left="20.0" />
+                                                                     </padding>
+                                                                  </Label>
+                                                               </children>
+                                                            </HBox>
+                                                            <HBox alignment="CENTER">
+                                                               <children>
+                                                                  <ComboBox fx:id="columnSortComboBox" layoutX="14.0" layoutY="97.0" prefWidth="200.0">
+                                                                     <VBox.margin>
+                                                                        <Insets />
+                                                                     </VBox.margin>
+                                                                  </ComboBox>
+                                                               </children>
+                                                            </HBox>
+                                                            <RadioButton fx:id="orderByRB" mnemonicParsing="false" selected="true" text="По возрастанию">
+                                                               <padding>
+                                                                  <Insets left="15.0" />
+                                                               </padding>
+                                                            </RadioButton>
+                                                            <RadioButton fx:id="orderByDescRB" mnemonicParsing="false" text="По убыванию">
+                                                               <padding>
+                                                                  <Insets left="15.0" />
+                                                               </padding>
+                                                            </RadioButton>
+                                                            <Separator prefWidth="200.0">
+                                                               <padding>
+                                                                  <Insets left="5.0" right="5.0" />
+                                                               </padding>
+                                                            </Separator>
+                                                            <CheckBox fx:id="limitCB" layoutX="37.0" layoutY="190.0" mnemonicParsing="false" text="Ограничение">
+                                                               <VBox.margin>
+                                                                  <Insets left="15.0" />
+                                                               </VBox.margin>
+                                                            </CheckBox>
+                                                            <HBox alignment="CENTER">
+                                                               <children>
+                                                                  <Label layoutX="60.0" layoutY="227.0" text="Введите число выводимых записей" />
+                                                               </children>
+                                                               <padding>
+                                                                  <Insets bottom="-10.0" left="20.0" />
+                                                               </padding>
+                                                            </HBox>
+                                                            <HBox alignment="CENTER">
+                                                               <children>
+                                                                  <TextField fx:id="limitTextField" layoutX="42.0" layoutY="263.0" maxWidth="200.0" prefWidth="200.0" />
+                                                               </children>
+                                                            </HBox>
+                                                         </children>
+                                                         <padding>
+                                                            <Insets top="10.0" />
+                                                         </padding>
+                                                      </VBox>
+                                                   </children>
+                                                </AnchorPane>
+                                            </content>
+                                          </Tab>
               </tabs>
             </TabPane>
          </center>
